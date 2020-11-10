@@ -57,6 +57,7 @@ onblur | null | String | Client side callback to execute when element loses focu
 autoWidth | true | Boolean | Calculates a fixed width based on the width of the maximum option label. Set to false for custom width.
 dynamic | false | Boolean | Defines if dynamic loading is enabled for the element's panel. If the value is "true", the overlay is not rendered on page load to improve performance.
 dir | ltr | String | Direction indication for text that does not inherit directionality. Valid values are LTR and RTL.
+validate | true | Boolean | Validate submitted values from client before further processing. This should only be disabled for special cases to improve performance with a huge amount of SelectItems. When enabling ensure there are no disabled SelectItems and all your users are allowed to select from the same pool of SelectItems. So do not disable this, when you have disabled SelectItems or different users see different SelectItems.
 
 ## Getting started with SelectOneMenu
 Basic SelectOneMenu usage is same as the standard one.

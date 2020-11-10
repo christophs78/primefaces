@@ -23,6 +23,10 @@
  */
 package org.primefaces.renderkit;
 
+import org.primefaces.component.selectonemenu.SelectOneMenu;
+import org.primefaces.util.LangUtils;
+
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import javax.faces.component.UIComponent;
@@ -42,7 +46,23 @@ public abstract class SelectOneRenderer extends SelectRenderer {
         Map<String, String> params = context.getExternalContext().getRequestParameterMap();
 
         String submittedValue = params.containsKey(clientId) ? params.get(clientId) : "";
-        List<String> validSubmittedValues = validateSubmittedValues(context, selectOne, (Object[]) getValues(selectOne), submittedValue);
+
+        boolean validate = true;
+        if (component instanceof SelectOneMenu) {
+            validate = ((SelectOneMenu) component).isValidate();
+        }
+
+        List<String> validSubmittedValues = null;
+        if (validate) {
+            validSubmittedValues = validateSubmittedValues(context, selectOne, (Object[]) getValues(selectOne), submittedValue);
+        }
+        else {
+            validSubmittedValues = new ArrayList<>();
+            if (!LangUtils.isValueBlank(submittedValue)) {
+                validSubmittedValues.add(submittedValue);
+            }
+        }
+
         selectOne.setSubmittedValue(validSubmittedValues.isEmpty() || validSubmittedValues.contains(submittedValue)
                 ? submittedValue
                 : validSubmittedValues.get(0));

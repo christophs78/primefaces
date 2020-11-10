@@ -58,7 +58,8 @@ public abstract class SelectOneMenuBase extends HtmlSelectOneMenu implements Wid
         placeholder,
         autoWidth,
         dynamic,
-        dir
+        dir,
+        validate
     }
 
     public SelectOneMenuBase() {
@@ -248,5 +249,13 @@ public abstract class SelectOneMenuBase extends HtmlSelectOneMenu implements Wid
     @Override
     public void setDir(String dir) {
         getStateHelper().put(PropertyKeys.dir, dir);
+    }
+
+    public boolean isValidate() {
+        return (Boolean) getStateHelper().eval(PropertyKeys.validate, true);
+    }
+
+    public void setValidate(boolean validate) {
+        getStateHelper().put(PropertyKeys.validate, validate);
     }
 }
