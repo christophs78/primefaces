@@ -671,62 +671,92 @@ PrimeFaces.widget.AutoComplete = PrimeFaces.widget.BaseWidget.extend({
             this.itemtip.hide();
         }
 
-        var options = {
-            source: this.id,
-            process: this.id,
-            update: this.id,
-            formId: this.cfg.formId,
-            onsuccess: function(responseXML, status, xhr) {
-                PrimeFaces.ajax.Response.handle(responseXML, status, xhr, {
-                    widget: $this,
-                    handle: function(content) {
-                        if(this.cfg.dynamic && !this.isDynamicLoaded) {
-                            this.panel = $(content);
-                            this.appendPanel();
-                            content = this.panel.get(0).innerHTML;
-                        }
-                        else {
-                            this.panel.html(content);
-                        }
+        var options;
 
-                        if (this.cfg.cache) {
-                            if (this.cfg.queryMode !== 'server' && !this.isDynamicLoaded && this.cache[query]) {
-                                this.panel.html(this.cache[query]);
+        if (!this.cfg.completeEndpoint) {
+            options = {
+                source: this.id,
+                process: this.id,
+                update: this.id,
+                formId: this.cfg.formId,
+                onsuccess: function (responseXML, status, xhr) {
+                    PrimeFaces.ajax.Response.handle(responseXML, status, xhr, {
+                        widget: $this,
+                        handle: function (content) {
+                            if (this.cfg.dynamic && !this.isDynamicLoaded) {
+                                this.panel = $(content);
+                                this.appendPanel();
+                                content = this.panel.get(0).innerHTML;
+                            } else {
+                                this.panel.html(content);
                             }
-                            else {
-                                this.cache[query] = content;
+
+                            if (this.cfg.cache) {
+                                if (this.cfg.queryMode !== 'server' && !this.isDynamicLoaded && this.cache[query]) {
+                                    this.panel.html(this.cache[query]);
+                                } else {
+                                    this.cache[query] = content;
+                                }
                             }
+
+                            this.showSuggestions(query);
                         }
+                    });
 
-                        this.showSuggestions(query);
-                    }
-                });
+                    return true;
+                },
+                oncomplete: function () {
+                    $this.querying = false;
+                    $this.isDynamicLoaded = true;
+                }
+            };
 
-                return true;
-            },
-            oncomplete: function() {
-                $this.querying = false;
-                $this.isDynamicLoaded = true;
+            options.params = [
+                {name: this.id + '_query', value: query}
+            ];
+
+            if (this.cfg.queryMode === 'hybrid') {
+                options.params.push({name: this.id + '_clientCache', value: true});
             }
-        };
 
-        options.params = [
-          {name: this.id + '_query', value: query}
-        ];
-        
-        if (this.cfg.queryMode === 'hybrid') {
-            options.params.push({name: this.id + '_clientCache', value: true});
-        }
-
-        if (this.cfg.dynamic && !this.isDynamicLoaded) {
-            options.params.push({name: this.id + '_dynamicload', value: true});
+            if (this.cfg.dynamic && !this.isDynamicLoaded) {
+                options.params.push({name: this.id + '_dynamicload', value: true});
+            }
         }
 
         if (this.hasBehavior('query')) {
             this.callBehavior('query', options);
         }
         else {
-            PrimeFaces.ajax.Request.handle(options);
+            if (!!this.cfg.completeEndpoint) {
+                $.ajax({
+                    url: this.cfg.completeEndpoint,
+                    data: { query: query },
+                    dataType: 'json'
+                })
+                    .done(function(suggestions) {
+                        var html = '<ul class="ui-autocomplete-items ui-autocomplete-list ui-widget-content ui-widget ui-corner-all ui-helper-reset">';
+                        suggestions.forEach(function(suggestion) {
+                            var labelEncoded = $("<div>").text(suggestion.label).html();
+                            var itemValue = labelEncoded;
+                            if (!!suggestion.value) {
+                                itemValue = $("<div>").text(suggestion.value).html();
+                            }
+                            html += '<li class="ui-autocomplete-item ui-autocomplete-list-item ui-corner-all" data-item-value="' + itemValue + '" data-item-label="' + labelEncoded + '" role="option">' + labelEncoded + '</li>';
+                        });
+                        html += '</ul>';
+
+                        $this.panel.html(html);
+
+                        $this.showSuggestions(query);
+                    })
+                    .always(function() {
+                        $this.querying = false;
+                    });
+            }
+            else {
+                PrimeFaces.ajax.Request.handle(options);
+            }
         }
     },
 

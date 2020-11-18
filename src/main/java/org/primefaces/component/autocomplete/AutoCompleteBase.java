@@ -79,7 +79,8 @@ public abstract class AutoCompleteBase extends HtmlInputText implements Widget, 
         dynamic,
         autoSelection,
         escape,
-        queryMode
+        queryMode,
+        completeEndpoint
     }
 
     public AutoCompleteBase() {
@@ -433,5 +434,13 @@ public abstract class AutoCompleteBase extends HtmlInputText implements Widget, 
 
     public void setQueryMode(String queryMode) {
         getStateHelper().put(PropertyKeys.queryMode, queryMode);
+    }
+
+    public String getCompleteEndpoint() {
+        return (String) getStateHelper().eval(PropertyKeys.completeEndpoint, null);
+    }
+
+    public void setCompleteEndpoint(String completeEndpoint) {
+        getStateHelper().put(PropertyKeys.completeEndpoint, completeEndpoint);
     }
 }
